@@ -3,6 +3,12 @@ import {useEffect, useState} from "react";
 import * as _ from 'lodash';
 import Graph from "react-graph-vis";
 
+function random_rgba() {
+    let o = Math.round, r = Math.random, s = 255;
+    return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s)+')';
+}
+
+//options for the graph component
 const options = {
     layout: {
         hierarchical: false
@@ -39,9 +45,16 @@ function LinksTable(props) {
 
         for (let i = 1; i < state.length; i++) {
             let color = "#b8f9d6"
-            if (i === props.id) {
-                color = "#aa5cdc"
+            if (props.id.length) {
+                if (!props.id.find(el => el.id === i-1)) {
+                    color = "#b8f9d6"
+                } else {
+                    color = props.id.find(el => el.id === i-1).color
+                }
             }
+            // if (i === props.id) {
+            //     color = "#aa5cdc"
+            // }
             graph.nodes.push({id: i, label: '  ' + i - 1 + '  ', color: color});
             for (let j = 1; j < state[i].length; j++) {
                 if (+state[i][j]) {
@@ -85,84 +98,218 @@ function LinksTable(props) {
 
 const App = () => {
     const [state, setState] = useState(null)
-    const [id, setId] = useState(null)
+    const [id, setId] = useState([])
     const [tableState, setTableState] = useState(null);
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    const dfs = () => {
-        let start = Number(document.getElementById('start').value);
-        if (!start) {
-            start = 0
+    const dfs = (method) => {
+        let initialVertex = Number(document.getElementById('initialVertex').value),
+            graphEdges = _.cloneDeep(state.graph.edges),
+            graphNodes = _.cloneDeep(state.graph.nodes),
+            list = [];
+
+        if (!initialVertex) initialVertex = 0;
+
+        for (let i = 0; i < graphNodes.length; i++) {
+            let node = graphNodes[i].id,
+                links = graphEdges.filter(edge => edge.from === node)
+                    .map(edge => edge.to - 1);
+
+            list.push(links);
         }
-        let edges = _.cloneDeep(state.graph.edges);
-        let nodes = _.cloneDeep(state.graph.nodes);
-        let adj_list = [];
 
-        for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i].id
-            let links = edges.map(edge => {
-                if (edge.from === node) return edge.to - 1
-            })
-            adj_list.push(links.filter(link => link !== undefined))
-        }
-        let visited = new Array(adj_list.length).fill(false);
+        if (method === 'bfs') {
+            let level = new Array(list.length).fill(-1)
+            let colors = new Array(list.length).fill('');
+            colors = colors.map(cl => random_rgba());
+            console.log(colors)
+            let chain = [0]
 
-        let chain = '';
-        let series = [];
+            function bfs(s) {
+                level[s] = 0
+                let queue = [s]
 
-        (function sdfs(adj_list, visited, v) {
-            return new Promise((resolve, reject) => {
-                // setId(v)
-                // console.log(v)
-                chain += (v + 1) + ' '
-                series.push(v)
-                visited[v] = true
-                console.log(series)
-                if (adj_list[v]) {
-                    let code = true;
-                    for (let i = 0; i < adj_list[v].length; i++) {
-                        let w = Number(adj_list[v][i])
-                        if (visited[w] === false) {
-                            // if (adj_list[v].filter(el => el !== w).length > 0) {
-                            //     series = [v]
-                            //     code = true
-                            // } else {
-                            //     code = false
-                            // }
-                            code = false
-                            sdfs(adj_list, visited, w)
+                while (queue.length) {
+                    let v = queue.shift()
+                    for (const w of list[v]) {
+                        if (level[w] === -1) {
+                            queue.push(w)
+                            chain.push(w)
+                            console.log(chain)
+                            level[w] = level[v] + 1
                         }
-                        // else if (w === start) {
-                        //         code = false
-                        //     }
-                    }
-                    if (code) {
-                        series.reverse().map(el => {
-                            chain += (el + 1) + ' '
-                            // setId(el)
-                            // console.log(el)
-                        })
-                        series = []
                     }
                 }
+            }
 
-                resolve(chain)
-            });
-        })(adj_list, visited, start).then(res => {
-            // console.log(res)
-            console.log(res.trim().split(' ').map(el => Number(el - 1)))
-            let arr = res.split(' ');
-            arr.map((el, index) => {
+
+            for (let i = 0; i < list.length; i++) {
+                if (level[i] === -1) {
+                    bfs(i)
+                }
+            }
+
+            let nL = []
+            for (let i = 0; i < chain.length; i++) {
+                nL.push({id:chain[i], lvl: level[chain[i]], cl:colors[level[chain[i]]]})
+            }
+
+            console.log(nL)
+
+            let p =[]
+            let c = []
+            for (let i = 0; i < nL.length; i++) {
+                p.push({id: nL[i].id, color: nL[i].cl})
+                // c.push(p)
+            }
+
+            for (let i = 0; i < p.length; i++) {
+                c.push(p.slice(0, i+1))
+            }
+
+
+            console.log(c)
+            // nL.map((el, index) => {
+            //     p.push({id:el.id, color:el.cl})
+            //     c.push(p)
+            //     // sleep(1000 * index).then(r => {
+            //     //     window.p.push({id:el.id, color:el.cl})
+            //     //     setId(window.p)
+            //     // })
+            // })
+            // setId(c[0])
+            c.map((el, index) => {
                 sleep(1000 * index).then(r => {
-                    setId(Number(el))
+                    setId(el)
                 })
             })
-            // setProcChain(res)
-            // console.log(res)
-        })
+            // console.log(p)
+            // console.log(c)
+
+            // console.log(p)
+            // setId(p)
+            // console.log(level)
+        }
+
+        if (method === 'dfs') {
+            const vertexLeavesNotVisitedCount = (list, visited, vertex) => {
+                let leaves = list[vertex];
+                let count = 0;
+                for (let i = 0; i < leaves.length; i++) {
+                    if (visited[leaves[i]] === false) count++
+                }
+                return count
+            }
+
+            const all = (list, visited, vertexArr) => {
+                let sum = 0;
+                vertexArr.map(vertex => {
+                    sum += vertexLeavesNotVisitedCount(list, visited, vertex)
+                })
+
+                return sum
+            }
+
+            let visited = new Array(list.length).fill(false),
+                chain = '',
+                series = [];
+
+
+            (function _dfs(list, visited, vertex) {
+                return new Promise((resolve, reject) => {
+                    chain += (vertex + 1) + ' ';
+                    series.push(vertex);
+                    visited[vertex] = true;
+                    console.log(series)
+                    let sum = all(list, visited, series)
+                    console.log(sum)
+                    let mum = vertexLeavesNotVisitedCount(list, visited, vertex)
+                    console.log(mum)
+
+                    if (list[vertex].length) {
+                        let printSeries = true;
+
+                        for (let i = 0; i < list[vertex].length; i++) {
+                            let nextVertex = Number(list[vertex][i]);
+
+
+                            if (!visited[nextVertex]) {
+                                if (vertexLeavesNotVisitedCount(list, visited, vertex) - 1) {
+                                    series = [vertex]
+                                }
+
+                                if (sum && !mum) {
+                                    printSeries = true;
+                                } else {
+                                    printSeries = false;
+                                }
+
+
+                                _dfs(list, visited, nextVertex).catch(e => console.log(e))
+
+                            }
+                        }
+                        // let end = sum && !vertexLeavesNotVisitedCount(list,visited,vertex)
+
+                        if (!sum) printSeries = false;
+                        if (sum === 1 && mum === 0) {
+                            console.log('+')
+                            printSeries = true;
+                        }
+                        // if (sum && !vertexLeavesNotVisitedCount(list,visited,vertex)) {
+                        //     printSeries = true;
+                        // }
+                        //
+                        // if (!sum && !vertexLeavesNotVisitedCount(list,visited,vertex)) {
+                        //     printSeries = false
+                        // }
+
+                        // if (!visited.includes(false)) printSeries = false;
+
+                        if (printSeries) {
+                            series.reverse().map(el => {
+                                chain += (el + 1) + ' ';
+                                return null
+                            });
+                            series = [];
+                        }
+                    } else {
+                        let printSeries = true;
+
+                        if (!sum) printSeries = false;
+                        if (sum === 1 && mum === 0) {
+                            // console.log('+')
+                            // printSeries = true;
+                        }
+
+                        if (printSeries) {
+                            series.reverse().map(el => {
+                                chain += (el + 1) + ' ';
+                                return null
+                            });
+                            series = [];
+                        }
+                    }
+
+                    resolve(chain)
+                });
+            })(list, visited, initialVertex).then(res => {
+                // console.log(res)
+                console.log(res.trim().split(' ').map(el => Number(el - 1)))
+                let arr = res.split(' ');
+                arr.map((el, index) => {
+                    sleep(1000 * index).then(r => {
+                        // setId(Number(el))
+                        setId([{id: Number(el)-1, color: "#997878"}])
+                    })
+                })
+                // setProcChain(res)
+                // console.log(res)
+            })
+        }
     }
 
     const buildTableState = columnsCount => {
@@ -199,10 +346,24 @@ const App = () => {
             <div className={'menu'}>
                 <input id={'verticesCount'} type="number" min={0} max={10}/>
                 <button onClick={getVerticesCount}>Настроить связи</button>
-                <input id={'start'} type="number"/>
-                <button onClick={dfs}>dfs</button>
                 {tableState ? <div>
                     <LinksTable tableState={tableState} setState={_setState} id={id}/>
+                </div> : null}
+
+                {state ? <div>
+                    <button onClick={() => dfs('bfs')}>В глубину с вершины</button>
+                    <select id="initialVertex">
+                        {state.graph.nodes.map((node, index) => {
+                            if (!index) {
+                                return (
+                                    <option selected={true} value={node.id - 1}>{node.id - 1}</option>
+                                )
+                            }
+                            return (
+                                <option value={node.id - 1}>{node.id - 1}</option>
+                            )
+                        })}
+                    </select>
                 </div> : null}
             </div>
             {state ? <div className={'graph'}>

@@ -5,6 +5,14 @@
     grid-template-columns: 4fr 8fr;
 }
 
+select {
+    text-align: center;
+    width: 15%;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 10px;
+}
+
 input {
     text-align: center;
     width: 10%;
