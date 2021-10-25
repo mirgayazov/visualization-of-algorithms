@@ -3,9 +3,9 @@ import {useEffect, useState} from "react";
 import * as _ from 'lodash';
 import Graph from "react-graph-vis";
 
-function random_rgba() {
+function random_rgb() {
     let o = Math.round, r = Math.random, s = 255;
-    return 'rgb(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s)+')';
+    return 'rgb(' + o(r() * s) + ',' + o(r() * s) + ',' + o(r() * s) + ')';
 }
 
 //options for the graph component
@@ -46,15 +46,13 @@ function LinksTable(props) {
         for (let i = 1; i < state.length; i++) {
             let color = "#b8f9d6"
             if (props.id.length) {
-                if (!props.id.find(el => el.id === i-1)) {
+                if (!props.id.find(el => el.id === i - 1)) {
                     color = "#b8f9d6"
                 } else {
-                    color = props.id.find(el => el.id === i-1).color
+                    color = props.id.find(el => el.id === i - 1).color
                 }
             }
-            // if (i === props.id) {
-            //     color = "#aa5cdc"
-            // }
+
             graph.nodes.push({id: i, label: '  ' + i - 1 + '  ', color: color});
             for (let j = 1; j < state[i].length; j++) {
                 if (+state[i][j]) {
@@ -99,6 +97,8 @@ function LinksTable(props) {
 const App = () => {
     const [state, setState] = useState(null)
     const [id, setId] = useState([])
+    const [dfsStr, setDfsStr] = useState([])
+    const [colors, setColors] = useState([])
     const [tableState, setTableState] = useState(null);
 
     function sleep(ms) {
@@ -106,8 +106,15 @@ const App = () => {
     }
 
     const dfs = (method) => {
-        let initialVertex = Number(document.getElementById('initialVertex').value),
-            graphEdges = _.cloneDeep(state.graph.edges),
+        let initialVertex = null;
+
+        if (method === 'dfs') {
+            initialVertex = Number(document.getElementById('initialVertex2').value)
+        } else {
+            initialVertex = Number(document.getElementById('initialVertex').value)
+        }
+
+        let graphEdges = _.cloneDeep(state.graph.edges),
             graphNodes = _.cloneDeep(state.graph.nodes),
             list = [];
 
@@ -124,8 +131,9 @@ const App = () => {
         if (method === 'bfs') {
             let level = new Array(list.length).fill(-1)
             let colors = new Array(list.length).fill('');
-            colors = colors.map(cl => random_rgba());
+            colors = colors.map(cl => random_rgb());
             console.log(colors)
+            setColors(colors)
             let chain = [0]
 
             function bfs(s) {
@@ -154,44 +162,24 @@ const App = () => {
 
             let nL = []
             for (let i = 0; i < chain.length; i++) {
-                nL.push({id:chain[i], lvl: level[chain[i]], cl:colors[level[chain[i]]]})
+                nL.push({id: chain[i], lvl: level[chain[i]], cl: colors[level[chain[i]]]})
             }
 
-            console.log(nL)
-
-            let p =[]
+            let p = []
             let c = []
             for (let i = 0; i < nL.length; i++) {
                 p.push({id: nL[i].id, color: nL[i].cl})
-                // c.push(p)
             }
 
             for (let i = 0; i < p.length; i++) {
-                c.push(p.slice(0, i+1))
+                c.push(p.slice(0, i + 1))
             }
 
-
-            console.log(c)
-            // nL.map((el, index) => {
-            //     p.push({id:el.id, color:el.cl})
-            //     c.push(p)
-            //     // sleep(1000 * index).then(r => {
-            //     //     window.p.push({id:el.id, color:el.cl})
-            //     //     setId(window.p)
-            //     // })
-            // })
-            // setId(c[0])
             c.map((el, index) => {
                 sleep(1000 * index).then(r => {
                     setId(el)
                 })
             })
-            // console.log(p)
-            // console.log(c)
-
-            // console.log(p)
-            // setId(p)
-            // console.log(level)
         }
 
         if (method === 'dfs') {
@@ -252,22 +240,12 @@ const App = () => {
 
                             }
                         }
-                        // let end = sum && !vertexLeavesNotVisitedCount(list,visited,vertex)
 
                         if (!sum) printSeries = false;
                         if (sum === 1 && mum === 0) {
                             console.log('+')
                             printSeries = true;
                         }
-                        // if (sum && !vertexLeavesNotVisitedCount(list,visited,vertex)) {
-                        //     printSeries = true;
-                        // }
-                        //
-                        // if (!sum && !vertexLeavesNotVisitedCount(list,visited,vertex)) {
-                        //     printSeries = false
-                        // }
-
-                        // if (!visited.includes(false)) printSeries = false;
 
                         if (printSeries) {
                             series.reverse().map(el => {
@@ -280,10 +258,8 @@ const App = () => {
                         let printSeries = true;
 
                         if (!sum) printSeries = false;
-                        if (sum === 1 && mum === 0) {
-                            // console.log('+')
-                            // printSeries = true;
-                        }
+                        // if (sum === 1 && mum === 0) {
+                        // }
 
                         if (printSeries) {
                             series.reverse().map(el => {
@@ -300,14 +276,16 @@ const App = () => {
                 // console.log(res)
                 console.log(res.trim().split(' ').map(el => Number(el - 1)))
                 let arr = res.split(' ');
+                window.str = 'route: '
                 arr.map((el, index) => {
                     sleep(1000 * index).then(r => {
-                        // setId(Number(el))
-                        setId([{id: Number(el)-1, color: "#997878"}])
+                        setId([{id: Number(el) - 1, color: '#ed8b8b'}])
+                        if ((Number(el) - 1) >= 0) {
+                            window.str += ' ➩ ' + (Number(el) - 1)
+                            setDfsStr(window.str)
+                        }
                     })
                 })
-                // setProcChain(res)
-                // console.log(res)
             })
         }
     }
@@ -316,7 +294,13 @@ const App = () => {
         let state = [];
         for (let i = 0; i < columnsCount; i++) {
             if (!i) {
-                state.push(new Array(columnsCount).fill(1).map((el, ind) => el * ind - 1))
+                state.push(new Array(columnsCount).fill(1).map((el, ind) => {
+                    if (!ind) {
+                        return null
+                    }else {
+                        return el * ind - 1
+                    }
+                }))
             } else {
                 state.push(new Array(columnsCount).fill(0).map((el, ind) => {
                     if (ind === 0) {
@@ -344,15 +328,19 @@ const App = () => {
     return (
         <div className="App">
             <div className={'menu'}>
+                <button onClick={getVerticesCount}>Fill nXn adjacency matrix n:</button>
                 <input id={'verticesCount'} type="number" min={0} max={10}/>
-                <button onClick={getVerticesCount}>Настроить связи</button>
+
                 {tableState ? <div>
                     <LinksTable tableState={tableState} setState={_setState} id={id}/>
                 </div> : null}
 
+
+            </div>
+            <div className={'methods'}>
                 {state ? <div>
-                    <button onClick={() => dfs('bfs')}>В глубину с вершины</button>
-                    <select id="initialVertex">
+                    <button onClick={() => dfs('dfs')}>Depth-first search starting from</button>
+                    <select id="initialVertex2">
                         {state.graph.nodes.map((node, index) => {
                             if (!index) {
                                 return (
@@ -364,6 +352,29 @@ const App = () => {
                             )
                         })}
                     </select>
+                    <div className={'route'}>
+                        {dfsStr}
+                    </div>
+                    <button onClick={() => dfs('bfs')}>Breadth-first search starting from</button>
+                    <select id="initialVertex">
+                        {state.graph.nodes.map((node, index) => {
+                            if (!index) {
+                                return (
+                                    <option selected={true} value={node.id - 1}>{node.id - 1}</option>
+                                )
+                            }
+                            return null
+                        })}
+
+                    </select>
+                    {colors.map((cl, index) => {
+                        return (
+                            <div className={'colors'}>
+                                level {index} ➩
+                                <input style={{"backgroundColor": cl}} disabled={true} type="text"/>
+                            </div>
+                        )
+                    })}
                 </div> : null}
             </div>
             {state ? <div className={'graph'}>

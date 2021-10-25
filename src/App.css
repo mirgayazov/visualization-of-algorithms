@@ -1,8 +1,19 @@
 .App {
     text-align: center;
     display: grid;
-    grid-template: 'm g';
-    grid-template-columns: 4fr 8fr;
+    grid-template: 'm n g';
+    grid-template-columns: 3fr 3fr 6fr;
+}
+
+.route {
+    /*width: 70%;*/
+    margin: 20px;
+    padding: 5px;
+}
+
+.methods {
+    margin-top: 30px;
+    grid-area: n;
 }
 
 select {
@@ -29,21 +40,32 @@ button {
 }
 
 .menu {
+    margin-top: 30px;
     grid-area: m;
 }
 
 .graph {
-    margin: 0 auto;
+    margin-top: 30px;
+    /*margin: 0 auto;*/
     grid-area: g;
 }
 
 table {
-    margin: 20px auto;
+    /*border-collapse: collapse;*/
+    margin: 10px auto;
     border: 1px solid black;
+}
+
+.colors {
+    margin: 10px  auto;
+}
+
+.colors input {
+    /*margin: 10px;*/
 }
 
 td {
     cursor: pointer;
     border: 1px solid black;
-    padding: 15px;
+    padding: 10px;
 }
