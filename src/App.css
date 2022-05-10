@@ -1,8 +1,15 @@
 .App {
     text-align: center;
     display: grid;
-    grid-template: 'm n g';
+    grid-template:
+            'c c c'
+            'm n g';
     grid-template-columns: 3fr 3fr 6fr;
+}
+
+.comments {
+    grid-area: c;
+    text-align: left;
 }
 
 .route {
@@ -57,7 +64,7 @@ table {
 }
 
 .colors {
-    margin: 10px  auto;
+    margin: 10px auto;
 }
 
 .colors input {

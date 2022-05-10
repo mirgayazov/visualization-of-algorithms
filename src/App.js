@@ -327,6 +327,23 @@ const App = () => {
 
     return (
         <div className="App">
+            <div className={'comments'}>
+                <ol>
+                    Before you start:
+                    <li>
+                        Enter dimension of adjacency matrix.
+                    </li>
+                    <li>
+                        Click "Fill nXn adjacency" button.
+                    </li>
+                    <li>
+                        Set connections between graph vertices using a table by clicking on the desired cell.
+                    </li>
+                    <li>
+                        Choose where to start DFS/BFS and enjoy!
+                    </li>
+                </ol>
+            </div>
             <div className={'menu'}>
                 <button onClick={getVerticesCount}>Fill nXn adjacency matrix n:</button>
                 <input id={'verticesCount'} type="number" min={0} max={10}/>
